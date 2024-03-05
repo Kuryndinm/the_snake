@@ -184,8 +184,8 @@ class Snake(GameObject):
 
             # Стартовая позиция
             self.positions = [
-                ((GRID_WIDTH // 2) * GRID_SIZE, (GRID_HEIGHT // 2) * GRID_SIZE)
-                              ]
+                ((GRID_WIDTH // 2) * GRID_SIZE,
+                 (GRID_HEIGHT // 2) * GRID_SIZE)]
 
             # Начальное напраление движения
             self.direction = RIGHT
