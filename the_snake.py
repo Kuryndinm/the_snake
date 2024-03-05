@@ -64,7 +64,6 @@ class Apple(GameObject):
         return position
 
     def draw(self, surface):
-        pass
         """Метод для отрисовки яблока на экране."""
         rect = pygame.Rect(
             (self.position[0], self.position[1]),
@@ -186,7 +185,7 @@ class Snake(GameObject):
             # Стартовая позиция
             self.positions = [
                 ((GRID_WIDTH // 2) * GRID_SIZE, (GRID_HEIGHT // 2) * GRID_SIZE)
-                ]
+                              ]
 
             # Начальное напраление движения
             self.direction = RIGHT
@@ -217,6 +216,7 @@ def handle_keys(game_object):
 
 # Сохранение и перезапись результата для отображения рекорда
 def save_result(length):
+    """Функция для записи и обновлении рекорда."""
     with open('records.txt', 'r+', encoding='utf-8') as f:
         if length > int(f.readline()):
             f.seek(0)
