@@ -2,43 +2,27 @@ from random import randint
 
 import pygame
 
-# Инициализация PyGame:
 pygame.init()
 
-# Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
 GRID_SIZE = 20
 GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
 
-# Направления движения:
 UP = (0, -1)
 DOWN = (0, 1)
 LEFT = (-1, 0)
 RIGHT = (1, 0)
 
-# Цвет фона - черный:
 BOARD_BACKGROUND_COLOR = (0, 0, 0)
-
-# Цвет границы ячейки
 BORDER_COLOR = (93, 216, 228)
-
-# Цвет яблока
 APPLE_COLOR = (255, 0, 0)
-
-# Цвет змейки
 SNAKE_COLOR = (0, 255, 0)
 
-# Скорость движения змейки:
-SPEED = 20
+SPEED = 10
 
-# Настройка игрового окна:
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 
-# Заголовок окна игрового поля:
-pygame.display.set_caption('Змейка')
-
-# Настройка времени:
 clock = pygame.time.Clock()
 
 
@@ -52,7 +36,10 @@ class GameObject():
 
     def draw(self):
         """Заглушка метода рисования объекта."""
-        pass
+        # Я постарался это сделать, но оно вроде не работает
+        # не понимаю почему
+        raise NotImplementedError('Определите draw в подклассе',
+                                  (self.__class__.__name__))
 
 
 class Apple(GameObject):
@@ -72,11 +59,12 @@ class Apple(GameObject):
                      randint(0, GRID_HEIGHT - 1) * GRID_SIZE))
 
         while position in Snake.positions:
-            position = ((randint(0, GRID_WIDTH) * 20,
-                        randint(0, GRID_HEIGHT) * 20))
+            position = ((randint(0, GRID_WIDTH) * GRID_SIZE,
+                        randint(0, GRID_HEIGHT) * GRID_SIZE))
         return position
 
     def draw(self, surface):
+        pass
         """Метод для отрисовки яблока на экране."""
         rect = pygame.Rect(
             (self.position[0], self.position[1]),
@@ -90,11 +78,12 @@ class Snake(GameObject):
     """Описание самой змейки."""
 
     # Начальная позиция змейки
-    positions = [((GRID_WIDTH // 2) * 20, (GRID_HEIGHT // 2) * 20)]
+    positions = [((GRID_WIDTH // 2) * GRID_SIZE,
+                  (GRID_HEIGHT // 2) * GRID_SIZE)]
 
     def __init__(self, body_color=(0, 255, 0), direction=RIGHT,
-                 positions=[((GRID_WIDTH // 2) * 20,
-                             (GRID_HEIGHT // 2) * 20)],
+                 positions=[((GRID_WIDTH // 2) * GRID_SIZE,
+                             (GRID_HEIGHT // 2) * GRID_SIZE)],
                  length=1, next_direction=None):
         """Иннициализация дочернего класса "Snake" от "GameObject"."""
         self.direction = direction
@@ -125,8 +114,8 @@ class Snake(GameObject):
         # Если змейка не съела яблоко добавление и удаление сегмента
         if head_position != apple.position:
             self.positions.append(
-                (self.positions[-1][0] + (direction[0] * 20),
-                 self.positions[-1][1] + (direction[1] * 20)))
+                (self.positions[-1][0] + (direction[0] * GRID_SIZE),
+                 self.positions[-1][1] + (direction[1] * GRID_SIZE)))
 
             del self.positions[0]
 
@@ -134,8 +123,8 @@ class Snake(GameObject):
         # для последующего добавления счетчика
         else:
             self.positions.append(
-                (self.positions[-1][0] + (direction[0] * 20),
-                 self.positions[-1][1] + (direction[1] * 20)))
+                (self.positions[-1][0] + (direction[0] * GRID_SIZE),
+                 self.positions[-1][1] + (direction[1] * GRID_SIZE)))
             apple.position = apple.randomize_position()
             self.length += 1
 
@@ -144,6 +133,8 @@ class Snake(GameObject):
 
         # Присваивание нового значения позиций змейки после проверки
         self.positions = normalized_positions
+
+        return self.length
 
     def normalize_positions(self):
         """
@@ -174,8 +165,6 @@ class Snake(GameObject):
         pygame.draw.rect(surface, self.body_color, head_rect)
         pygame.draw.rect(surface, BORDER_COLOR, head_rect, 1)
 
-        print(self.last)
-
         if self.last:
             last_rect = pygame.Rect(
                 (self.last[0], self.last[1]),
@@ -196,13 +185,16 @@ class Snake(GameObject):
 
             # Стартовая позиция
             self.positions = [
-                ((GRID_WIDTH // 2) * 20, (GRID_HEIGHT // 2) * 20)]
+                ((GRID_WIDTH // 2) * GRID_SIZE, (GRID_HEIGHT // 2) * GRID_SIZE)
+                ]
 
             # Начальное напраление движения
             self.direction = RIGHT
 
             # Рандомизация положения яблока
             apple.position = apple.randomize_position()
+
+            self.length = 1
 
 
 def handle_keys(game_object):
@@ -223,11 +215,23 @@ def handle_keys(game_object):
                 game_object.next_direction = RIGHT
 
 
+# Сохранение и перезапись результата для отображения рекорда
+def save_result(length):
+    with open('records.txt', 'r+', encoding='utf-8') as f:
+        if length > int(f.readline()):
+            f.seek(0)
+            f.write(f'{length}\n')
+            return length
+        else:
+            f.seek(0)
+            return f.readline()
+
+
 def main():
     """Основная функция игры."""
     # Добавления экземпляра в класс Snake
-    snake = Snake(SNAKE_COLOR, RIGHT, [((GRID_WIDTH // 2) * 20,
-                                        (GRID_HEIGHT // 2) * 20)]
+    snake = Snake(SNAKE_COLOR, RIGHT, [((GRID_WIDTH // 2) * GRID_SIZE,
+                                        (GRID_HEIGHT // 2) * GRID_SIZE)]
                   )
 
     # Добавления экземпляра в класс Apple
@@ -235,7 +239,13 @@ def main():
 
     while True:
         # Скорость обновления экрана (х в секунду раз)
-        clock.tick(10)
+        clock.tick(SPEED)
+
+        # Отображение в панели инфы названия игры(змейка),
+        # скорости, текущей длины, рекорд
+        pygame.display.set_caption(f'Змейка!     Скорость игры: {SPEED}      '
+                                   f'Текущая длина змейки: |{snake.length}|'
+                                   f'     Рекорд: {save_result(snake.length)}')
 
         # Получение информации для движения с клавиатуры
         handle_keys(snake)
