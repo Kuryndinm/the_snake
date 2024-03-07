@@ -214,17 +214,15 @@ def handle_keys(game_object):
                 game_object.next_direction = RIGHT
 
 
-# Сохранение и перезапись результата для отображения рекорда
 def save_result(length):
     """Функция для записи и обновлении рекорда."""
     with open('records.txt', 'r+', encoding='utf-8') as f:
         if length > int(f.readline()):
             f.seek(0)
             f.write(f'{length}\n')
-            return length
-        else:
-            f.seek(0)
-            return f.readline()
+
+        f.seek(0)
+        return f.readline()
 
 
 def main():
